@@ -202,7 +202,7 @@
         }
 
         function generateQuestion() {
-            // Zmiana gracza NAJPIERW
+            // Zmiana gracza
             currentPlayer = currentPlayer === 1 ? 2 : 1;
 
             // Obrót strony
@@ -217,17 +217,10 @@
             const index = Math.floor(Math.random() * availableQuestions.length);
             const question = availableQuestions.splice(index, 1)[0];
 
-            // Wyświetl pytanie PO krótkim opóźnieniu (żeby rotacja wyglądała lepiej)
+            // Wyświetl pytanie po krótkim opóźnieniu (aby rotacja wyglądała lepiej)
             setTimeout(() => {
                 document.getElementById('question').innerText = `${getCurrentPlayerName()}, ${question}`;
-
-                // Ukryj przycisk jeśli gracz już użył "Pomiń"
-                if (currentPlayer === 1) {
-                    document.getElementById('skipButton').style.display = player2Skipped ? 'none' : 'inline-block';
-                } else {
-                    document.getElementById('skipButton').style.display = player1Skipped ? 'none' : 'inline-block';
-                }
-            }, 300);
+            }, 500);
         }
 
         function skipQuestion() {
