@@ -3,35 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moja Strona</title>
+    <title>Gra od Franka</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             background-color: #f0f0f0;
+            text-align: center;
         }
 
         h1 {
-            text-align: center;
             color: #333;
         }
 
         .question {
             font-size: 20px;
-            text-align: center;
-            margin-top: 20px;
+            margin-top: 30px;
             color: #444;
+            min-height: 60px;
         }
 
         .button {
-            display: block;
-            margin: 30px auto;
-            padding: 10px 20px;
+            margin: 20px 10px;
+            padding: 10px 25px;
             background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
+            font-size: 16px;
             cursor: pointer;
         }
 
@@ -39,88 +39,75 @@
             background-color: #45a049;
         }
 
-        .input-container {
-            text-align: center;
-            margin-top: 20px;
-        }
-
         .input-container input {
             padding: 10px;
             font-size: 16px;
-            margin-right: 10px;
+            margin: 10px;
             width: 200px;
-            text-align: center;
         }
 
-        /* Styl dla przycisku "OD FRANKA" */
         .flip-button-container {
-            text-align: center;
-            margin-top: 50px;
+            perspective: 1000px;
+            margin-top: 60px;
         }
 
-        .flip-button {
+        .flip-card {
             width: 200px;
             height: 60px;
-            background-color: #f44336;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            cursor: pointer;
+            margin: 0 auto;
+            position: relative;
             transform-style: preserve-3d;
             transition: transform 0.6s;
         }
 
-        .flip-button.flipped {
+        .flip-card.flipped {
             transform: rotateY(180deg);
         }
 
-        .flip-button .front,
-        .flip-button .back {
+        .flip-face {
             position: absolute;
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            border-radius: 10px;
+            color: white;
         }
 
-        .flip-button .back {
+        .front {
+            background-color: #f44336;
+        }
+
+        .back {
             background-color: #4CAF50;
             transform: rotateY(180deg);
         }
     </style>
 </head>
 <body>
-    <h1>Witaj na mojej stronie!</h1>
+    <h1>Gra od Franka</h1>
 
-    <!-- Formularz do wprowadzenia imion graczy -->
     <div class="input-container">
         <input type="text" id="player1" placeholder="Imię gracza 1" />
         <input type="text" id="player2" placeholder="Imię gracza 2" />
         <button class="button" onclick="startGame()">Rozpocznij grę</button>
     </div>
 
-    <!-- Pytanie i imię gracza -->
     <div class="question" id="question">Wprowadź imiona graczy, aby rozpocząć grę!</div>
+    <button class="button" id="questionButton" style="display: none;" onclick="generateQuestion()">Losuj pytanie</button>
+    <button class="button" id="skipButton" style="display: none;" onclick="skipQuestion()">Pomiń pytanie</button>
 
-    <!-- Przycisk do losowania pytania -->
-    <button class="button" onclick="generateQuestion()" id="questionButton" style="display: none;">Losuj pytanie</button>
-
-    <!-- Przycisk do pominięcia pytania -->
-    <button class="button" onclick="skipQuestion()" id="skipButton" style="display: none;">Pomiń pytanie</button>
-
-    <!-- Przycisk OD FRANKA -->
     <div class="flip-button-container">
-        <button class="flip-button" id="flipButton">
-            <div class="front">OD FRANKA</div>
-            <div class="back">I LOVE PATI</div>
-        </button>
+        <div class="flip-card" id="flipCard">
+            <div class="flip-face front">OD FRANKA</div>
+            <div class="flip-face back">I LOVE PATI</div>
+        </div>
     </div>
 
     <script>
-        // Lista pytań
         const allQuestions = [
             "Co byś zrobił/a, gdybyś mógł/mogła być niewidzialny/a przez 24h?",
             "Gdybyś mógł/mogła jeść tylko jedno jedzenie do końca życia?",
@@ -150,30 +137,24 @@
             "Co byś zrobił/a, gdybyś miał/a moc sprawiania, że ludzie będą szczęśliwi?",
             "Gdybyś był/a w stanie zmienić coś w historii, co by to było?",
             "Co byś zrobił/a, gdybyś miał/a moc przewidywania przyszłości?",
-            "Gdybyś mógł/mogła zostać mistrzem w czymkolwiek, co byś wybrał/a?"
+            "Gdybyś mógł/mogła zostać mistrzem w czymkolwiek, co byś wybrał/a?",
+            "Co byś zrobił/a, gdybyś musiał/a wyznać komuś coś ważnego dziś?"
         ];
 
         let availableQuestions = [...allQuestions];
-        let currentPlayer = 1; // Rozpoczynamy od gracza 1
+        let currentPlayer = 1;
         let player1Name = '';
         let player2Name = '';
-        let player1Skipped = false; // Sprawdzamy, czy gracz 1 użył opcji "Pomiń"
-        let player2Skipped = false; // Sprawdzamy, czy gracz 2 użył opcji "Pomiń"
+        let player1Skipped = false;
+        let player2Skipped = false;
 
         function startGame() {
-            // Pobranie imion graczy
-            player1Name = document.getElementById('player1').value;
-            player2Name = document.getElementById('player2').value;
-
-            // Sprawdzamy, czy oba imiona zostały wpisane
-            if (player1Name && player2Name) {
-                document.querySelector('.input-container').style.display = 'none'; // Ukrywamy formularz
-                document.getElementById('questionButton').style.display = 'block'; // Pokazujemy przycisk do losowania pytania
-                document.getElementById('question').innerText = player1Name + ', przygotuj się na pierwsze pytanie!';
-                document.getElementById('skipButton').style.display = 'block'; // Pokazujemy przycisk "Pomiń"
-            } else {
-                alert('Proszę wprowadzić imiona graczy!');
-            }
+            player1Name = document.getElementById('player1').value || "Gracz 1";
+            player2Name = document.getElementById('player2').value || "Gracz 2";
+            document.querySelector('.input-container').style.display = 'none';
+            document.getElementById('questionButton').style.display = 'inline-block';
+            document.getElementById('skipButton').style.display = 'inline-block';
+            document.getElementById('question').innerText = `${player1Name}, zaczynasz!`;
         }
 
         function generateQuestion() {
@@ -183,39 +164,29 @@
 
             const randomIndex = Math.floor(Math.random() * availableQuestions.length);
             const question = availableQuestions.splice(randomIndex, 1)[0];
-            document.getElementById('question').innerText = getCurrentPlayerName() + ', ' + question;
+            document.getElementById('question').innerText = `${getCurrentPlayerName()}, ${question}`;
 
-            // Zmiana gracza po wylosowaniu pytania
-            currentPlayer = currentPlayer === 1 ? 2 : 1;
-
-            // Ukrywanie przycisku "Pomiń" dla gracza, który już użył tej opcji
-            if (currentPlayer === 1) {
-                if (!player1Skipped) {
-                    document.getElementById('skipButton').style.display = 'block';
-                } else {
-                    document.getElementById('skipButton').style.display = 'none';
-                }
+            // Ustawienia przycisku "Pomiń"
+            if (currentPlayer === 1 && player1Skipped) {
+                document.getElementById('skipButton').style.display = 'none';
+            } else if (currentPlayer === 2 && player2Skipped) {
+                document.getElementById('skipButton').style.display = 'none';
             } else {
-                if (!player2Skipped) {
-                    document.getElementById('skipButton').style.display = 'block';
-                } else {
-                    document.getElementById('skipButton').style.display = 'none';
-                }
+                document.getElementById('skipButton').style.display = 'inline-block';
             }
+
+            // Zmiana gracza
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
         }
 
         function skipQuestion() {
-            // Sprawdzamy, który gracz pomija pytanie
             if (currentPlayer === 1) {
                 player1Skipped = true;
             } else {
                 player2Skipped = true;
             }
 
-            // Ukrywamy przycisk "Pomiń" po jego użyciu przez gracza
             document.getElementById('skipButton').style.display = 'none';
-
-            // Losujemy kolejne pytanie
             generateQuestion();
         }
 
@@ -223,8 +194,8 @@
             return currentPlayer === 1 ? player1Name : player2Name;
         }
 
-        // Funkcja do obracania przycisku
-        document.getElementById('flipButton').addEventListener('click', function () {
+        // Przycisk "OD FRANKA"
+        document.getElementById('flipCard').addEventListener('click', function () {
             this.classList.toggle('flipped');
         });
     </script>
