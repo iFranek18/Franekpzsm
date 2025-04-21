@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moja Strona</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .question {
+            font-size: 20px;
+            text-align: center;
+            margin-top: 20px;
+            color: #444;
+        }
+
+        .button {
+            display: block;
+            margin: 30px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .input-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .input-container input {
+            padding: 10px;
+            font-size: 16px;
+            margin-right: 10px;
+            width: 200px;
+            text-align: center;
+        }
+
+        /* Styl dla przycisku "OD FRANKA" */
+        .flip-button-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .flip-button {
+            width: 200px;
+            height: 60px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .flip-button.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flip-button .front,
+        .flip-button .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backface-visibility: hidden;
+        }
+
+        .flip-button .back {
+            background-color: #4CAF50;
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body>
+    <h1>Witaj na mojej stronie!</h1>
+
+    <!-- Formularz do wprowadzenia imion graczy -->
+    <div class="input-container">
+        <input type="text" id="player1" placeholder="Imię gracza 1" />
+        <input type="text" id="player2" placeholder="Imię gracza 2" />
+        <button class="button" onclick="startGame()">Rozpocznij grę</button>
+    </div>
+
+    <!-- Pytanie i imię gracza -->
+    <div class="question" id="question">Wprowadź imiona graczy, aby rozpocząć grę!</div>
+
+    <!-- Przycisk do losowania pytania -->
+    <button class="button" onclick="generateQuestion()" id="questionButton" style="display: none;">Losuj pytanie</button>
+
+    <!-- Przycisk do pominięcia pytania -->
+    <button class="button" onclick="skipQuestion()" id="skipButton" style="display: none;">Pomiń pytanie</button>
+
+    <!-- Przycisk OD FRANKA -->
+    <div class="flip-button-container">
+        <button class="flip-button" id="flipButton">
+            <div class="front">OD FRANKA</div>
+            <div class="back">I LOVE PATI</div>
+        </button>
+    </div>
+
+    <script>
+        // Lista pytań
+        const allQuestions = [
+            "Co byś zrobił/a, gdybyś mógł/mogła być niewidzialny/a przez 24h?",
+            "Gdybyś mógł/mogła jeść tylko jedno jedzenie do końca życia?",
+            "Co byś zrobił/a, gdybyś wygrał/a 10 milionów złotych?",
+            "Gdybyś mógł/mogła przenieść się w czasie na jeden dzień?",
+            "Co byś zrobił/a, gdybyś był/a kimś innym na jeden dzień?",
+            "Co byś zrobił/a, gdybyś zakochał/a się w kimś niedostępnym?",
+            "Gdyby ktoś powiedział Ci, że jesteś zbyt emocjonalny/a?",
+            "Co byś zrobił/a, gdybyś miał/a powiedzieć komuś coś odważnego dziś wieczorem?",
+            "Co byś zrobił/a, gdybyś miał/a szansę na jeden idealny dzień z kimś bliskim?",
+            "Co byś zrobił/a, gdyby ktoś zaprosił Cię na spacer o 2 w nocy tylko po to, żeby pogadać?",
+            "Co byś zrobił/a, gdyby ktoś zapytał Cię teraz, czy chcesz się przytulić?",
+            "Co byś zrobił/a, gdybyście zostali tu sami na całą noc?",
+            "Co byś zrobił/a, gdyby ktoś powiedział Ci prosto w oczy, że coś w Tobie bardzo przyciąga?",
+            "Co byś zrobił/a, gdybyś usłyszał/a coś, na co czekałeś/aś od dawna?",
+            "Co byś zrobił/a, gdybyś poczuł/a, że ktoś naprawdę Cię rozumie?",
+            "Gdybyś mógł/mogła spędzić dzień z dowolną osobą, kto by to był?",
+            "Co byś zrobił/a, gdybyś miał/a możliwość spotkać swojego idola?",
+            "Gdybyś mógł/mogła podróżować w czasie, do jakiej epoki byś się udał/a?",
+            "Co byś zrobił/a, gdybyś wygrał/a w totolotka?",
+            "Jak byś spędził/a jeden dzień bez technologii?",
+            "Co byś zrobił/a, gdybyś miał/a wybrać jedną rzecz w swoim życiu do zmiany?",
+            "Co byś zrobił/a, gdybyś dostał/a możliwość spełnienia jednego marzenia?",
+            "Gdybyś miał/a tylko 24 godziny życia, co byś zrobił/a?",
+            "Co byś zrobił/a, gdybyś miał/a wybrać jedną osobę, z którą chcesz spędzić resztę życia?",
+            "Gdybyś mógł/mogła zrobić coś, czego nigdy nie miał/aś odwagi, co by to było?",
+            "Co byś zrobił/a, gdybyś miał/a moc sprawiania, że ludzie będą szczęśliwi?",
+            "Gdybyś był/a w stanie zmienić coś w historii, co by to było?",
+            "Co byś zrobił/a, gdybyś miał/a moc przewidywania przyszłości?",
+            "Gdybyś mógł/mogła zostać mistrzem w czymkolwiek, co byś wybrał/a?"
+        ];
+
+        let availableQuestions = [...allQuestions];
+        let currentPlayer = 1; // Rozpoczynamy od gracza 1
+        let player1Name = '';
+        let player2Name = '';
+        let player1Skipped = false; // Sprawdzamy, czy gracz 1 użył opcji "Pomiń"
+        let player2Skipped = false; // Sprawdzamy, czy gracz 2 użył opcji "Pomiń"
+
+        function startGame() {
+            // Pobranie imion graczy
+            player1Name = document.getElementById('player1').value;
+            player2Name = document.getElementById('player2').value;
+
+            // Sprawdzamy, czy oba imiona zostały wpisane
+            if (player1Name && player2Name) {
+                document.querySelector('.input-container').style.display = 'none'; // Ukrywamy formularz
+                document.getElementById('questionButton').style.display = 'block'; // Pokazujemy przycisk do losowania pytania
+                document.getElementById('question').innerText = player1Name + ', przygotuj się na pierwsze pytanie!';
+                document.getElementById('skipButton').style.display = 'block'; // Pokazujemy przycisk "Pomiń"
+            } else {
+                alert('Proszę wprowadzić imiona graczy!');
+            }
+        }
+
+        function generateQuestion() {
+            if (availableQuestions.length === 0) {
+                availableQuestions = [...allQuestions];
+            }
+
+            const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+            const question = availableQuestions.splice(randomIndex, 1)[0];
+            document.getElementById('question').innerText = getCurrentPlayerName() + ', ' + question;
+
+            // Zmiana gracza po wylosowaniu pytania
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+
+            // Ukrywanie przycisku "Pomiń" dla gracza, który już użył tej opcji
+            if (currentPlayer === 1) {
+                if (!player1Skipped) {
+                    document.getElementById('skipButton').style.display = 'block';
+                } else {
+                    document.getElementById('skipButton').style.display = 'none';
+                }
+            } else {
+                if (!player2Skipped) {
+                    document.getElementById('skipButton').style.display = 'block';
+                } else {
+                    document.getElementById('skipButton').style.display = 'none';
+                }
+            }
+        }
+
+        function skipQuestion() {
+            // Sprawdzamy, który gracz pomija pytanie
+            if (currentPlayer === 1) {
+                player1Skipped = true;
+            } else {
+                player2Skipped = true;
+            }
+
+            // Ukrywamy przycisk "Pomiń" po jego użyciu przez gracza
+            document.getElementById('skipButton').style.display = 'none';
+
+            // Losujemy kolejne pytanie
+            generateQuestion();
+        }
+
+        function getCurrentPlayerName() {
+            return currentPlayer === 1 ? player1Name : player2Name;
+        }
+
+        // Funkcja do obracania przycisku
+        document.getElementById('flipButton').addEventListener('click', function () {
+            this.classList.toggle('flipped');
+        });
+    </script>
+</body>
+</html>
